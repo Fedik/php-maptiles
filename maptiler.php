@@ -39,7 +39,7 @@ class MapTiler
 	 * if true - tiles will generates from top to bottom
 	 * @var bool
 	 */
-	protected $tms = false;
+	protected $tms = true;
 
 	/**
 	 * fill color can be transparent for png
@@ -59,6 +59,21 @@ class MapTiler
 	 * @var int
 	 */
 	protected $zoom_max = 18;
+
+	/**
+	 * prvent image scalling up
+	 * if image size less than need foor zoom level
+	 * @var bool
+	 */
+	protected $scaling_up = false;
+
+	/**
+	 * Imagic filter for resizing
+	 * http://www.php.net/manual/en/imagick.constants.php
+	 * Imagick::FILTER_POINT - fast with bad quality
+	 * Imagick::FILTER_CATROM - good enough
+	 */
+	protected $resize_filter = Imagick::FILTER_CATROM;
 
 	/**
 	 * image format used for store the tiles: jpeg or png
@@ -125,9 +140,7 @@ class MapTiler
 
 		//make tiles for each zoom lvl
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
-			$this->tilesForZoom($i);
-
-			$_PROFILER->mark('Make tiles for zoom ' .$i);
+			//$this->tilesForZoom($i);
 		}
 
 
@@ -166,10 +179,11 @@ class MapTiler
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
 			$lvl_path = $this->tiles_path.'/'.$i;
 			//prepare base images for each zoom lvl
-			$img_size_w = ($i + 1) * $this->tile_size;
+			$img_size_w = pow(2, $i) * $this->tile_size;
 			$img_size_h = $img_size_w;
+var_dump($img_size_w);
 			//prevent scaling up
-			if($img_size_w > $main_size_w &&  $img_size_h > $main_size_h){
+			if(!$this->scaling_up && $img_size_w > $main_size_w && $img_size_h > $main_size_h){
 				//set real max zoom
 				$this->zoom_max = $i-1;
 				break;
@@ -198,6 +212,7 @@ class MapTiler
 	 * @param int $zoom
 	 */
 	public function tilesForZoom($zoom) {
+		global $_PROFILER;
 		$path = $this->tiles_path.'/'.$zoom;
 		//base image
 		$ext = $this->getExtension();
@@ -228,13 +243,12 @@ class MapTiler
 
 		//by x
 		for($ix = 0; $ix < $x; $ix++){
-			$path_x = $path .'/'.$ix;
-			//$crop_x = $this->tms ? $image_w - $ix * $w : $ix * $w;
 			$crop_x = $ix * $w;
-			if($crop_x >= $image_w) break;
+			if($crop_x >= $image_w) continue;
+
 			//by y
 			for($iy = 0; $iy < $y; $iy++){
-				//file name
+				//full file path
 				$lvl_file = $this->tiles_path.'/'.sprintf($this->store_structure, $zoom, $ix, $iy).'.'.$ext;
 
 				//just copy if zoom = 0
@@ -244,23 +258,14 @@ class MapTiler
 				}
 
 				//crop
-				//$crop_y = $this->tms? $image_h - $iy * $h: $iy * $h;
-				$crop_y = $iy * $h;
-				if($crop_y >= $image_h) break;
+				$crop_y = $this->tms? $image_h - ($iy + 1)* $h : $iy * $h;
+				if($crop_y >= $image_h) continue;
+				if($crop_y < 0) break;
 
 				$tile = clone $image;
-
 				//$image->setImagePage($w, $h, $crop_x, $crop_y);
 				$tile->cropImage($w, $h, $crop_x, $crop_y);
 
-				//fill free space
-// 				if($tile->getimagewidth() < $w
-// 					|| $tile->getimageheight() < $h
-// 				){
-// 					$tile->setImageBackgroundColor($this->fill_color);
-// 					//$tile->setImageExtent($w, $h);
-// 					$tile->extentImage($w, $h, 0, 0);
-// 				}
 				//save
 				$this->imageSave($tile, $lvl_file);
 				$this->unloadImage($tile);
@@ -270,7 +275,7 @@ class MapTiler
 
 		//clear resurces
 		$this->unloadImage($image);
-
+		$_PROFILER->mark('Make tiles for zoom ' .$zoom);
 	}
 
 	/**
@@ -303,19 +308,20 @@ class MapTiler
 	 */
 	protected function imageFitTo($image, $w, $h, $fill_free = true) {
 		//resize
-		//$image->resizeImage($w, $h, Imagick::FILTER_POINT, 1, true);
-		//$image->resizeImage($w, $h, Imagick::FILTER_QUADRATIC, 1, true);
-		$image->resizeImage($w, $h, Imagick::FILTER_CATROM, 1, true);
+		$image->resizeImage($w, $h, $this->resize_filter, 1, true);
 
 		//fill free space
 		if($fill_free){
 			$image->setImageBackgroundColor($this->fill_color);
-			$image->extentImage($w, $h, 0, 0);
+			$image->extentImage(
+				$w, $h,
+				$image->getImageWidth() - $w, //move bottom-left
+				$image->getImageHeight() - $h //move bottom-left
+			);
 			//$image->setImageExtent($w, $h);
 			//$image->setImageGravity(Imagick::GRAVITY_CENTER);
 		}
 
-		//return result
 		return $image;
 	}
 
@@ -361,6 +367,7 @@ class MapTiler
 
 	/**
 	 * return file extension depend of given format
+	 * @param string $format - output format used in Imagick
 	 */
 	protected function getExtension($format = null){
 		$format = $format ? $format : $this->format;
