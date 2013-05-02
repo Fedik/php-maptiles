@@ -74,6 +74,13 @@ class MapTiler
 	protected $quality_jpeg = 80;
 
 	/**
+	 * ImageMagick tmp folder,
+	 * Can be changed in case if system /tmp have not enough free space
+	 * @var string
+	 */
+	protected $imagick_tmp = null;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct($image_path, $options = array())
@@ -85,6 +92,11 @@ class MapTiler
 
 		$this->image_path = $image_path;
 		$this->setOptions($options);
+
+		//if new tmp folder given
+		if($this->imagick_tmp && is_dir($this->imagick_tmp)){
+			putenv('MAGICK_TEMPORARY_PATH=' . $this->imagick_tmp);
+		}
 	}
 
 	/**
