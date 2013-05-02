@@ -280,17 +280,19 @@ class MapTiler
 	 *
 	 * @return resurce new imagick object
 	 */
-	protected function imageFitTo($image, $w, $h) {
+	protected function imageFitTo($image, $w, $h, $fill_free = true) {
 		//resize
 		//$image->resizeImage($w, $h, Imagick::FILTER_POINT, 1, true);
 		//$image->resizeImage($w, $h, Imagick::FILTER_QUADRATIC, 1, true);
 		$image->resizeImage($w, $h, Imagick::FILTER_CATROM, 1, true);
 
 		//fill free space
-		$image->setImageBackgroundColor($this->fill_color);
-		$image->extentImage($w, $h, 0, 0);
-		//$image->setImageExtent($w, $h);
-		//$image->setImageGravity(Imagick::GRAVITY_CENTER);
+		if($fill_free){
+			$image->setImageBackgroundColor($this->fill_color);
+			$image->extentImage($w, $h, 0, 0);
+			//$image->setImageExtent($w, $h);
+			//$image->setImageGravity(Imagick::GRAVITY_CENTER);
+		}
 
 		//return result
 		return $image;
