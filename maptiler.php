@@ -162,6 +162,7 @@ class MapTiler
 		$_PROFILER->mark('MainImageLoad');
 
 		//prepare each zoom lvl base images
+		$ext = $this->getExtension();
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
 			$lvl_path = $this->tiles_path.'/'.$i;
 			//prepare base images for each zoom lvl
@@ -179,7 +180,6 @@ class MapTiler
 			$lvl_image = $this->imageFitTo($lvl_image, $img_size_w, $img_size_h);
 
 			//store
-			$ext = $this->format == 'jpeg'? 'jpg' : 'png';
 			$lvl_file = $this->tiles_path.'/'.$i.'.'.$ext;
 			$this->imageSave($lvl_image, $lvl_file);
 
@@ -200,7 +200,7 @@ class MapTiler
 	public function tilesForZoom($zoom) {
 		$path = $this->tiles_path.'/'.$zoom;
 		//base image
-		$ext = $this->format == 'jpeg'? 'jpg' : 'png';
+		$ext = $this->getExtension();
 		$file = $this->tiles_path.'/'.$zoom.'.'.$ext;
 
 		//load image
@@ -357,5 +357,31 @@ class MapTiler
 			throw new RuntimeException('Cannot crate folder '.$path);
 		}
 		return true;
+	}
+
+	/**
+	 * return file extension depend of given format
+	 */
+	protected function getExtension($format = null){
+		$format = $format ? $format : $this->format;
+		$ext = '';
+
+		switch (strtolower($format)) {
+			case 'jpeg':
+			case 'jp2':
+			case 'jpc':
+			case 'jxr':
+				$ext = 'jpg';
+				break;
+			case 'png':
+			case 'png00':
+			case 'png8':
+			case 'png24':
+			case 'png32':
+			case 'png64':
+				$ext = 'png';
+				break;
+		}
+		return $ext;
 	}
 }
