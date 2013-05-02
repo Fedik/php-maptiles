@@ -172,16 +172,35 @@ class MapTiler
 		$main_size_w = $main_image->getimagewidth();
 		$main_size_h = $main_image->getImageHeight();
 
+		//count for cut empty space
+		$new_w = $main_size_w;
+		$new_h = $main_size_h;
+		$resize = false;
+		$diff_w = $main_size_w / $this->tile_size;
+		if(floor($diff_w) != $diff_w ){
+			$new_w = ceil($diff_w) * $this->tile_size;
+			$resize = true;
+		}
+		$diff_h = $main_size_h / $this->tile_size;
+		if(floor($diff_h) != $diff_h){
+			$new_h = ceil($diff_h) * $this->tile_size;
+			$resize = true;
+		}
+		if($resize){
+			//fit in to perfect rectangle ;)
+			$this->imageFitTo($main_image, $new_w, $new_h, true);
+		}
+
+
 		$_PROFILER->mark('MainImageLoad');
 
 		//prepare each zoom lvl base images
 		$ext = $this->getExtension();
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
-			$lvl_path = $this->tiles_path.'/'.$i;
 			//prepare base images for each zoom lvl
 			$img_size_w = pow(2, $i) * $this->tile_size;
 			$img_size_h = $img_size_w;
-var_dump($img_size_w);
+
 			//prevent scaling up
 			if(!$this->scaling_up && $img_size_w > $main_size_w && $img_size_h > $main_size_h){
 				//set real max zoom
@@ -230,8 +249,8 @@ var_dump($img_size_w);
 		$image_h = $image->getImageHeight();
 
 		//count by x,y
-		$x = pow(2, $zoom);
-		$y = $x;
+		$x = $image_w / $this->tile_size;
+		$y = $image_h / $this->tile_size;
 
 		//tile width, height
 		$w = $this->tile_size;
@@ -306,7 +325,8 @@ var_dump($img_size_w);
 	 *
 	 * @return resurce new imagick object
 	 */
-	protected function imageFitTo($image, $w, $h, $fill_free = true) {
+	protected function imageFitTo($image, $w, $h, $fill_free = false) {
+
 		//resize
 		$image->resizeImage($w, $h, $this->resize_filter, 1, true);
 
@@ -315,8 +335,7 @@ var_dump($img_size_w);
 			$image->setImageBackgroundColor($this->fill_color);
 			$image->extentImage(
 				$w, $h,
-				$image->getImageWidth() - $w, //move bottom-left
-				$image->getImageHeight() - $h //move bottom-left
+				0, $image->getImageHeight() - $h //count for move bottom-left
 			);
 			//$image->setImageExtent($w, $h);
 			//$image->setImageGravity(Imagick::GRAVITY_CENTER);
