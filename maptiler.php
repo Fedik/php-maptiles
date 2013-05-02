@@ -136,14 +136,23 @@ class MapTiler
 
 	/**
 	 * prepare each zoom lvl base images
+	 * @param int $min - min zoom lvl
+	 * @param int $max - max zoom lvl
 	 */
-	public function prepareZoomBaseImages(){
+	public function prepareZoomBaseImages($min = null, $max = null){
 		global $_PROFILER;
+
+		//prepare zoom levels
+		if($min){
+			$max = !$max ? $min : $max;
+			$this->zoom_min = $min;
+			$this->zoom_max = $max;
+		}
+
 		//load main image
 		if(!is_file($this->image_path) || !is_readable($this->image_path)){
 			throw new RuntimeException('Cannot read image '.$this->image_path);
 		}
-
 		$main_image = $this->loadImage($this->image_path);
 		$main_image->setImageFormat($this->format);
 		//get image size
