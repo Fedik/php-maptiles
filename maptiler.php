@@ -27,11 +27,12 @@ class MapTiler
 	protected $tile_size = 256;
 
 	/**
-	 * Store structure
+	 * Store structure, examples: zoom/x/y, zoom/x-y
 	 * file name format, can contain the path separator
+	 * extension (eg: '.jpg') will add automaticaly depend of format option
 	 * @var string for sprintf()
 	 */
-	protected $store_structure = '{z}/{x}/{y}.jpg';
+	protected $store_structure = '%d/%d/%d';
 
 	/**
 	 * http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
@@ -151,8 +152,6 @@ class MapTiler
 				$this->zoom_max = $i-1;
 				break;
 			}
-			//prepare folder
-			//$this->makeFolder($lvl_path);
 
 			//fit main image to current zoom lvl
 			$lvl_image = clone $main_image;
@@ -215,7 +214,7 @@ class MapTiler
 			//by y
 			for($iy = 0; $iy < $y; $iy++){
 				//file name
-				$lvl_file = $path_x.'/'.$iy.'.'.$ext;
+				$lvl_file = $this->tiles_path.'/'.sprintf($this->store_structure, $zoom, $ix, $iy).'.'.$ext;
 
 				//just copy if zoom = 0
 				if($zoom == 0){
@@ -282,8 +281,6 @@ class MapTiler
 	 * @return resurce new imagick object
 	 */
 	protected function imageFitTo($image, $w, $h) {
-
-
 		//resize
 		//$image->resizeImage($w, $h, Imagick::FILTER_POINT, 1, true);
 		//$image->resizeImage($w, $h, Imagick::FILTER_QUADRATIC, 1, true);
