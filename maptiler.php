@@ -140,7 +140,7 @@ class MapTiler
 
 		//make tiles for each zoom lvl
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
-			//$this->tilesForZoom($i);
+			$this->tilesForZoom($i);
 		}
 
 
@@ -171,26 +171,6 @@ class MapTiler
 		//get image size
 		$main_size_w = $main_image->getimagewidth();
 		$main_size_h = $main_image->getImageHeight();
-
-		//count for cut empty space
-		$new_w = $main_size_w;
-		$new_h = $main_size_h;
-		$resize = false;
-		$diff_w = $main_size_w / $this->tile_size;
-		if(floor($diff_w) != $diff_w ){
-			$new_w = ceil($diff_w) * $this->tile_size;
-			$resize = true;
-		}
-		$diff_h = $main_size_h / $this->tile_size;
-		if(floor($diff_h) != $diff_h){
-			$new_h = ceil($diff_h) * $this->tile_size;
-			$resize = true;
-		}
-		if($resize){
-			//fit in to perfect rectangle ;)
-			$this->imageFitTo($main_image, $new_w, $new_h, true);
-		}
-
 
 		$_PROFILER->mark('MainImageLoad');
 
@@ -249,8 +229,8 @@ class MapTiler
 		$image_h = $image->getImageHeight();
 
 		//count by x,y
-		$x = $image_w / $this->tile_size;
-		$y = $image_h / $this->tile_size;
+		$x = ceil($image_w / $this->tile_size);
+		$y = ceil($image_h / $this->tile_size);
 
 		//tile width, height
 		$w = $this->tile_size;
@@ -263,7 +243,7 @@ class MapTiler
 		//by x
 		for($ix = 0; $ix < $x; $ix++){
 			$crop_x = $ix * $w;
-			if($crop_x >= $image_w) continue;
+			//if($crop_x >= $image_w) continue;
 
 			//by y
 			for($iy = 0; $iy < $y; $iy++){
@@ -278,12 +258,16 @@ class MapTiler
 
 				//crop
 				$crop_y = $this->tms? $image_h - ($iy + 1)* $h : $iy * $h;
-				if($crop_y >= $image_h) continue;
-				if($crop_y < 0) break;
+				//if($crop_y >= $image_h) continue;
 
 				$tile = clone $image;
 				//$image->setImagePage($w, $h, $crop_x, $crop_y);
 				$tile->cropImage($w, $h, $crop_x, $crop_y);
+
+				//check if image smaller than we need
+				if($tile->getImageWidth() < $w || $tile->getimageheight() < $h){
+					$this->imageFitTo($tile, $w, $h, true);
+				}
 
 				//save
 				$this->imageSave($tile, $lvl_file);
