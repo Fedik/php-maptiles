@@ -65,7 +65,7 @@ class MapTiler
 	 * zoom max
 	 * @var int
 	 */
-	protected $zoom_max = 18;
+	protected $zoom_max = 8;
 
 	/**
 	 * prvent image scalling up
