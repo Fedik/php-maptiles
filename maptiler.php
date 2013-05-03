@@ -239,29 +239,21 @@ class MapTiler
 		//crop cursore
 		$crop_x = 0;
 		$crop_y = 0;
-var_dump('Zoom: '.$zoom.' X:'.$x.' Y:'.$y);
+
 		//by x
 		for($ix = 0; $ix < $x; $ix++){
 			$crop_x = $ix * $w;
-			//if($crop_x >= $image_w) continue;
 
 			//by y
 			for($iy = 0; $iy < $y; $iy++){
 				//full file path
 				$lvl_file = $this->tiles_path.'/'.sprintf($this->store_structure, $zoom, $ix, $iy).'.'.$ext;
-var_dump($lvl_file);
-				//just copy if zoom = 0
-				if($zoom == 0 && $ix == 0 && $iy == 0){
-					$this->imageSave($image, $lvl_file);
-					continue;
-				}
+
+				$crop_y = $this->tms? $image_h - ($iy + 1)* $h : $iy * $h;
+				//@TODO: move non TMS tiles bottom too???
+				//$crop_y = $this->tms ? $image_h - ($iy + 1) * $h : $image_h - ($y - $iy) * $h ;
 
 				//crop
-				//$crop_y = $this->tms? $image_h - ($iy + 1)* $h : $iy * $h;
-				//$crop_y = $image_h - ($iy + 1) * $h;
-				$crop_y = $this->tms ? $image_h - ($iy + 1) * $h : $image_h - ($y - $iy) * $h ;
-				//if($crop_y >= $image_h) continue;
-var_dump($image_w.'x'. $image_h, $crop_x.'x'. $crop_y);
 				$tile = clone $image;
 				//$image->setImagePage($w, $h, $crop_x, $crop_y);
 				$tile->cropImage($w, $h, $crop_x, $crop_y);
@@ -320,7 +312,7 @@ var_dump($image_w.'x'. $image_h, $crop_x.'x'. $crop_y);
 			$image->setImageBackgroundColor($this->fill_color);
 			$image->extentImage(
 				$w, $h,
-				0, $image->getImageHeight() - $h //count for move bottom-left
+				0, ($this->tms ? $image->getImageHeight() - $h : 0) //count for move bottom-left
 			);
 			//$image->setImageExtent($w, $h);
 			//$image->setImageGravity(Imagick::GRAVITY_CENTER);
