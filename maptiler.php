@@ -79,7 +79,7 @@ class MapTiler
 	 * Imagick::FILTER_POINT - fast with bad quality
 	 * Imagick::FILTER_CATROM - good enough
 	 */
-	protected $resize_filter = Imagick::FILTER_CATROM;
+	protected $resize_filter = Imagick::FILTER_POINT;
 
 	/**
 	 * image format used for store the tiles: jpeg or png
@@ -188,7 +188,9 @@ class MapTiler
 
 		//prepare each zoom lvl base images
 		$ext = $this->getExtension();
-		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
+		$start = true;
+		$lvl_image = null;
+		for($i = $this->zoom_max; $i >= $this->zoom_min; $i--){
 			$lvl_file = $this->tiles_path.'/'.$i.'.'.$ext;
 
 			//check if already exist
@@ -199,28 +201,33 @@ class MapTiler
 			//prepare base images for each zoom lvl
 			$img_size_w = pow(2, $i) * $this->tile_size;
 			$img_size_h = $img_size_w;
-
+var_dump($main_size_w.'x'.$main_size_h, $img_size_w);
 			//prevent scaling up
 			if(!$this->scaling_up && $img_size_w > $main_size_w && $img_size_h > $main_size_h){
 				//set real max zoom
 				$this->zoom_max = $i-1;
-				break;
+				continue;
 			}
-
+var_dump($lvl_file);
 			//fit main image to current zoom lvl
-			$lvl_image = clone $main_image;
+			$lvl_image = $start ? clone $main_image : $lvl_image;
 			$lvl_image = $this->imageFitTo($lvl_image, $img_size_w, $img_size_h);
 
 			//store
 			$this->imageSave($lvl_image, $lvl_file);
 
 			//clear
-			$this->unloadImage($lvl_image);
+			if($start){
+				$this->unloadImage($main_image);
+			}
+			$start = false;
+
+			$_PROFILER->mark('PrepareEachZoomImage for: '.$i);
 
 		}
 
 		//free resurce, destroy main image
-		$this->unloadImage($main_image);
+		if($lvl_image) $this->unloadImage($lvl_image);
 		$_PROFILER->mark('MainImageUnLoad');
 	}
 
