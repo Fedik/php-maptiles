@@ -57,6 +57,8 @@ Display the result using [Leaflet.js](http://leafletjs.com)
     layers:[tiles]	
   });
   </script>
+</body>
+</html>
 ```
 
 ##API
