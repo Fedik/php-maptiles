@@ -1,6 +1,7 @@
 <?php
 /**
  * @package PHP MapTiler, Simple Map Tiles Generator
+ * @version 1.0 (2013.05.03)
  * @author  Fedik getthesite at gmail.com
  * @link    http://www.getsite.org.ua
  * @license	GNU/GPL http://www.gnu.org/licenses/gpl.html
@@ -102,6 +103,12 @@ class MapTiler
 	protected $imagick_tmp = null;
 
 	/**
+	 * array with profiler class and method for call_user_func_array
+	 * @var array
+	 */
+	protected $profiler_callback = null;
+
+	/**
 	 * Class constructor.
 	 */
 	public function __construct($image_path, $options = array())
@@ -135,15 +142,12 @@ class MapTiler
 	 * @param bool $clean_up - whether need to remove a zoom base images
 	 */
 	public function process($clean_up = false){
-		global $_PROFILER;
-		$_PROFILER->mark('Make tiles Started');
+		$this->profiler('MapTiler: Process. Start');
 
 		//prepare each zoom lvl base images
 		$this->prepareZoomBaseImages();
 
-
-		$_PROFILER->mark('PrepareEachZoomImage');
-
+		$this->profiler('MapTiler: Create images for each zoom level. End');
 
 		//make tiles for each zoom lvl
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
@@ -155,8 +159,7 @@ class MapTiler
 			$this->removeZoomBaseImages();
 		}
 
-
-		$_PROFILER->mark('Make tiles End');
+		$this->profiler('MapTiler: Process. End');
 	}
 
 	/**
@@ -165,8 +168,6 @@ class MapTiler
 	 * @param int $max - max zoom lvl
 	 */
 	public function prepareZoomBaseImages($min = null, $max = null){
-		global $_PROFILER;
-
 		//prepare zoom levels
 		if($min){
 			$max = !$max ? $min : $max;
@@ -180,11 +181,12 @@ class MapTiler
 		}
 		$main_image = $this->loadImage($this->image_path);
 		$main_image->setImageFormat($this->format);
+
 		//get image size
 		$main_size_w = $main_image->getimagewidth();
 		$main_size_h = $main_image->getImageHeight();
 
-		$_PROFILER->mark('MainImageLoad');
+		$this->profiler('MapTiler: Main Image loaded');
 
 		//prepare each zoom lvl base images
 		$ext = $this->getExtension();
@@ -222,13 +224,11 @@ class MapTiler
 			}
 			$start = false;
 
-			$_PROFILER->mark('PrepareEachZoomImage for: '.$i);
-
+			$this->profiler('MapTiler: Created Image for zoom level: '.$i);
 		}
 
-		//free resurce, destroy main image
+		//free resurce, destroy imagick object
 		if($lvl_image) $this->unloadImage($lvl_image);
-		$_PROFILER->mark('MainImageUnLoad');
 	}
 
 	/**
@@ -258,7 +258,6 @@ class MapTiler
 	 * @param int $zoom
 	 */
 	public function tilesForZoom($zoom) {
-		global $_PROFILER;
 		$path = $this->tiles_path.'/'.$zoom;
 		//base image
 		$ext = $this->getExtension();
@@ -323,7 +322,8 @@ class MapTiler
 
 		//clear resurces
 		$this->unloadImage($image);
-		$_PROFILER->mark('Make tiles for zoom ' .$zoom);
+
+		$this->profiler('MapTiler: Created Tiles for zoom level: '. $zoom);
 	}
 
 	/**
@@ -355,11 +355,10 @@ class MapTiler
 	 * @return resurce imagick object
 	 */
 	protected function imageFit($image, $w, $h) {
-
-		//resize works slower but have a better quality
+		//resize - works slower but have a better quality
 		//$image->resizeImage($w, $h, $this->resize_filter, 1, true);
 
-		//scle - work fast, but without any quality configuration
+		//scale - work fast, but without any quality configuration
 		$image->scaleImage($w, $h, true);
 
 		return $image;
@@ -451,5 +450,15 @@ class MapTiler
 				break;
 		}
 		return $ext;
+	}
+
+	/**
+	 * profiler function
+	 * @param string $note
+	 */
+	protected function profiler($note) {
+		if($this->profiler_callback) {
+			call_user_func_array($this->profiler_callback, array($note));
+		}
 	}
 }
