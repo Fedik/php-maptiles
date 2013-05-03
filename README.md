@@ -1,7 +1,7 @@
 #PHP MapTiler, Simple Map Tiles Generator
 
 Simple Map Tiles Generator allow to make the Map Tiles using PHP. That allow to build simple custom map.
-Here do not exist any geographical calculations, because I have no idea how to :) 
+Here not exist any geographical calculations, because I have no idea how to :) 
 Just fork/pull it if you know how to make it better ;)
 
 ##Requirements
