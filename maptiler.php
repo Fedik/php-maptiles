@@ -374,7 +374,7 @@ class MapTiler
 	 *
 	 * @return resurce imagick object
 	 */
-	protected function fillFreeSpace($mage, $w, $h) {
+	protected function fillFreeSpace($image, $w, $h) {
 		$image->setImageBackgroundColor($this->fill_color);
 		$image->extentImage(
 				$w, $h,
@@ -382,6 +382,8 @@ class MapTiler
 		);
 		//$image->setImageExtent($w, $h);
 		//$image->setImageGravity(Imagick::GRAVITY_CENTER);
+
+		return $image;
 	}
 
 	/**
