@@ -79,7 +79,7 @@ class MapTiler
 	 * Imagick::FILTER_POINT - fast with bad quality
 	 * Imagick::FILTER_CATROM - good enough
 	 */
-	protected $resize_filter = Imagick::FILTER_POINT;
+	//protected $resize_filter = Imagick::FILTER_POINT;
 
 	/**
 	 * image format used for store the tiles: jpeg or png
@@ -201,17 +201,17 @@ class MapTiler
 			//prepare base images for each zoom lvl
 			$img_size_w = pow(2, $i) * $this->tile_size;
 			$img_size_h = $img_size_w;
-var_dump($main_size_w.'x'.$main_size_h, $img_size_w);
+
 			//prevent scaling up
 			if(!$this->scaling_up && $img_size_w > $main_size_w && $img_size_h > $main_size_h){
 				//set real max zoom
 				$this->zoom_max = $i-1;
 				continue;
 			}
-var_dump($lvl_file);
+
 			//fit main image to current zoom lvl
 			$lvl_image = $start ? clone $main_image : $lvl_image;
-			$lvl_image = $this->imageFitTo($lvl_image, $img_size_w, $img_size_h);
+			$lvl_image = $this->imageFit($lvl_image, $img_size_w, $img_size_h);
 
 			//store
 			$this->imageSave($lvl_image, $lvl_file);
@@ -312,7 +312,7 @@ var_dump($lvl_file);
 
 				//check if image smaller than we need
 				if($tile->getImageWidth() < $w || $tile->getimageheight() < $h){
-					$this->imageFitTo($tile, $w, $h, true);
+					$this->fillFreeSpace($tile, $w, $h, true);
 				}
 
 				//save
@@ -352,25 +352,36 @@ var_dump($lvl_file);
 	 * @param int $w width
 	 * @param int $h height
 	 *
-	 * @return resurce new imagick object
+	 * @return resurce imagick object
 	 */
-	protected function imageFitTo($image, $w, $h, $fill_free = false) {
+	protected function imageFit($image, $w, $h) {
 
-		//resize
-		$image->resizeImage($w, $h, $this->resize_filter, 1, true);
+		//resize works slower but have a better quality
+		//$image->resizeImage($w, $h, $this->resize_filter, 1, true);
 
-		//fill free space
-		if($fill_free){
-			$image->setImageBackgroundColor($this->fill_color);
-			$image->extentImage(
-				$w, $h,
-				0, ($this->tms ? $image->getImageHeight() - $h : 0) //count for move bottom-left
-			);
-			//$image->setImageExtent($w, $h);
-			//$image->setImageGravity(Imagick::GRAVITY_CENTER);
-		}
+		//scle - work fast, but without any quality configuration
+		$image->scaleImage($w, $h, true);
 
 		return $image;
+	}
+
+	/**
+	 * Put image in to rectangle and fill free space
+	 *
+	 * @param resurce $image Imagick object
+	 * @param int $w width
+	 * @param int $h height
+	 *
+	 * @return resurce imagick object
+	 */
+	protected function fillFreeSpace($mage, $w, $h) {
+		$image->setImageBackgroundColor($this->fill_color);
+		$image->extentImage(
+				$w, $h,
+				0, ($this->tms ? $image->getImageHeight() - $h : 0) //count for move bottom-left
+		);
+		//$image->setImageExtent($w, $h);
+		//$image->setImageGravity(Imagick::GRAVITY_CENTER);
 	}
 
 	/**
