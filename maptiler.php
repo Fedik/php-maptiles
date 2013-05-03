@@ -35,6 +35,12 @@ class MapTiler
 	protected $store_structure = '%d/%d/%d';
 
 	/**
+	 * force tile generation, event if tile already exist
+	 * @var bool
+	 */
+	protected $force = false;
+
+	/**
 	 * http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
 	 * if true - tiles will generates from top to bottom
 	 * @var bool
@@ -126,8 +132,9 @@ class MapTiler
 
 	/**
 	 * run make tiles process
+	 * @param bool $clean_up - whether need to remove a zoom base images
 	 */
-	public function process(){
+	public function process($clean_up = false){
 		global $_PROFILER;
 		$_PROFILER->mark('Make tiles Started');
 
@@ -141,6 +148,11 @@ class MapTiler
 		//make tiles for each zoom lvl
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
 			$this->tilesForZoom($i);
+		}
+
+		//clean up base images
+		if($clean_up){
+			$this->removeZoomBaseImages();
 		}
 
 
@@ -177,6 +189,13 @@ class MapTiler
 		//prepare each zoom lvl base images
 		$ext = $this->getExtension();
 		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
+			$lvl_file = $this->tiles_path.'/'.$i.'.'.$ext;
+
+			//check if already exist
+			if(!$this->force && is_file($lvl_file)){
+				continue;
+			}
+
 			//prepare base images for each zoom lvl
 			$img_size_w = pow(2, $i) * $this->tile_size;
 			$img_size_h = $img_size_w;
@@ -193,7 +212,6 @@ class MapTiler
 			$lvl_image = $this->imageFitTo($lvl_image, $img_size_w, $img_size_h);
 
 			//store
-			$lvl_file = $this->tiles_path.'/'.$i.'.'.$ext;
 			$this->imageSave($lvl_image, $lvl_file);
 
 			//clear
@@ -204,6 +222,28 @@ class MapTiler
 		//free resurce, destroy main image
 		$this->unloadImage($main_image);
 		$_PROFILER->mark('MainImageUnLoad');
+	}
+
+	/**
+	 * remove zoom lvl base images
+	 * @param int $min - min zoom lvl
+	 * @param int $max - max zoom lvl
+	 */
+	public function removeZoomBaseImages($min = null, $max = null){
+		//prepare zoom levels
+		if($min){
+			$max = !$max ? $min : $max;
+			$this->zoom_min = $min;
+			$this->zoom_max = $max;
+		}
+		//remove
+		$ext = $this->getExtension();
+		for($i = $this->zoom_min; $i <= $this->zoom_max; $i++){
+			$lvl_file = $this->tiles_path.'/'.$i.'.'.$ext;
+			if(is_file($lvl_file)){
+				unlink($lvl_file);
+			}
+		}
 	}
 
 	/**
@@ -248,6 +288,11 @@ class MapTiler
 			for($iy = 0; $iy < $y; $iy++){
 				//full file path
 				$lvl_file = $this->tiles_path.'/'.sprintf($this->store_structure, $zoom, $ix, $iy).'.'.$ext;
+
+				//check if already exist
+				if(!$this->force && is_file($lvl_file)){
+					continue;
+				}
 
 				$crop_y = $this->tms? $image_h - ($iy + 1)* $h : $iy * $h;
 				//@TODO: move non TMS tiles bottom too???
