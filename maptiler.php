@@ -138,6 +138,14 @@ class MapTiler
 	}
 
 	/**
+	 * get options
+	 * @return array $options
+	 */
+	public function getOptions() {
+		return get_object_vars($this);
+	}
+
+	/**
 	 * run make tiles process
 	 * @param bool $clean_up - whether need to remove a zoom base images
 	 */
@@ -431,7 +439,7 @@ class MapTiler
 	 * return file extension depend of given format
 	 * @param string $format - output format used in Imagick
 	 */
-	protected function getExtension($format = null){
+	public function getExtension($format = null){
 		$format = $format ? $format : $this->format;
 		$ext = '';
 
