@@ -1,7 +1,7 @@
 <?php
 /**
  * @package PHP MapTiler, Simple Map Tiles Generator
- * @version 1.0 (2013.05.03)
+ * @version 1.1 (2013.05.13)
  * @author  Fedik getthesite at gmail.com
  * @link    http://www.getsite.org.ua
  * @license	GNU/GPL http://www.gnu.org/licenses/gpl.html
@@ -68,11 +68,11 @@ class MapTiler
 	protected $zoom_max = 8;
 
 	/**
-	 * prvent image scalling up
-	 * if image size less than need foor zoom level
-	 * @var bool
+	 * for prevent image scalling up
+	 * if image size less than need for zoom level
+	 * @var int - max zoom level, when scalling up is allowed
 	 */
-	protected $scaling_up = false;
+	protected $scaling_up = 0;
 
 	/**
 	 * Imagic filter for resizing
@@ -205,7 +205,9 @@ class MapTiler
 			$img_size_h = $img_size_w;
 
 			//prevent scaling up
-			if(!$this->scaling_up && $img_size_w > $main_size_w && $img_size_h > $main_size_h){
+			if((!$this->scaling_up || $i > $this->scaling_up  )
+				&& $img_size_w > $main_size_w && $img_size_h > $main_size_h
+			){
 				//set real max zoom
 				$this->zoom_max = $i-1;
 				continue;
