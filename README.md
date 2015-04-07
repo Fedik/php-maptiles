@@ -18,8 +18,8 @@ Generate the Tiles:
 ```php
 //init
 $map_tiler = new MapTiler('/full/path/to/my-image.jpg', array(
-  'tiles_path' => '/full/path/to/where-store-result/'
-  'zoom_max' => 3,
+  'tiles_path' => '/full/path/to/where-store-result/',
+  'zoom_max' => 3
 ));
 //execute
 try {
