@@ -85,4 +85,4 @@ Display the result using [Leaflet.js](http://leafletjs.com)
 * `tilesForZoom($zoom)` - generate the tiles for given $zoom level
 
 ##Attention
-This script do **NOT** related to maptiler.com, that is stand alone project.
+This script do **NOT** related to **maptiler.com**, that is stand alone project.
