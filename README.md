@@ -83,3 +83,6 @@ Display the result using [Leaflet.js](http://leafletjs.com)
 * `prepareZoomBaseImages($min = null, $max = null)` - prepare the base zoom images, $min - min zoom level, $max - max zoom level
 * `removeZoomBaseImages($min = null, $max = null)` - remove the base zoom images
 * `tilesForZoom($zoom)` - generate the tiles for given $zoom level
+
+##Attention
+This script do **NOT** related to maptiler.com, that is stand alone project.
