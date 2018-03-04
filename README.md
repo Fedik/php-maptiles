@@ -1,17 +1,19 @@
-#PHP MapTiler, Simple Map Tiles Generator
+# PHP MapTiler, Simple Map Tiles Generator
 
 Simple Map Tiles Generator allow to make the Map Tiles using PHP. That allow to build simple custom map.
 Here not exist any geographical calculations, because I have no idea how to :)
 Just fork/pull it if you know how to make it better ;)
 
-##Requirements
+## Requirements
+
 * PHP >= 5.3 version
 * PHP Imagic extension >= 3.0 version
 * A lot CPU time (for images with high resolution and for high zoom level)
 * A lot free disc space
 * Patience ;)
 
-##Usage example
+## Usage example
+
 Make custom map, based on my-image.jpg.
 
 Generate the Tiles:
@@ -61,8 +63,10 @@ Display the result using [Leaflet.js](http://leafletjs.com)
 </html>
 ```
 
-##API
-###Options
+## API
+
+### Options
+
 * `tile_size` - the tile size (def: 256);
 * `store_structure` - the tile name, can contain `/` for split `zoom`, `x` , `y` by folder (def: '%d/%d/%d');
 * `force` - force create new tile if it already exist (def: false);
@@ -75,7 +79,8 @@ Display the result using [Leaflet.js](http://leafletjs.com)
 * `quality_jpeg` - quality for jpeg format (def: 80);
 * `imagick_tmp` - temp folder for ImageMagick, useful if system /tmp folder have not enough free space (def: null);
 
-###Publick Methods
+### Publick Methods
+
 * `__construct($image_path, $options = array())` - constructor
 * `setOptions($options)` - can be used for set/change options
 * `getOptions()` - return options array
@@ -84,5 +89,6 @@ Display the result using [Leaflet.js](http://leafletjs.com)
 * `removeZoomBaseImages($min = null, $max = null)` - remove the base zoom images
 * `tilesForZoom($zoom)` - generate the tiles for given $zoom level
 
-##Attention
+## Attention
+
 This script do **NOT** related to **maptiler.com**, that is stand alone project.
