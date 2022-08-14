@@ -1,0 +1,24 @@
+{
+  "name": "fedik/php-maptiles",
+  "description": "Simple Map Tiles Generator. Allow to make a Map Tiles with PHP and Imagick.",
+  "type": "library",
+  "license": "GNU/GPL",
+  "keywords": [
+    "map tile",
+    "map tile generator",
+    "php map tiles",
+    "php tile generator",
+    "php map generator",
+    "convert image to map",
+    "map from image"
+  ],
+  "authors": [
+    {
+      "name": "Fedir Zinchuk",
+      "email": "getthesite@gmail.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {"Fedik\\MapTiles\\": "src/"}
+  }
+}

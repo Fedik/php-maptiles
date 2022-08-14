@@ -1,0 +1,14 @@
+# IDE & System Related Files #
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+Desktop.ini
+.buildpath
+.project
+.settings
+.idea
+.externalToolBuilders
+
+test.php

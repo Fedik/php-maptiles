@@ -1,28 +1,32 @@
 <?php
 /**
- * @package PHP MapTiler, Simple Map Tiles Generator
- * @version 1.1 (2013.05.13)
+ * @package PHP MapTiles, Simple Map Tiles Generator
  * @author  Fedik getthesite at gmail.com
  * @link    http://www.getsite.org.ua
  * @license	GNU/GPL http://www.gnu.org/licenses/gpl.html
  */
 
-class MapTiler
+namespace Fedik\MapTiles;
+
+/**
+ * MapTiles class
+ */
+class MapTiles
 {
 	/**
-	 * image path
+	 * Path to source image
 	 * @var string
 	 */
 	protected $image_path = null;
 
 	/**
-	 * tiles path
+	 * Path to tiles folder
 	 * @var string
 	 */
 	protected $tiles_path = null;
 
 	/**
-	 * tile size
+	 * Tile size
 	 * @var int
 	 */
 	protected $tile_size = 256;
@@ -30,52 +34,56 @@ class MapTiler
 	/**
 	 * Store structure, examples: zoom/x/y, zoom/x-y
 	 * file name format, can contain the path separator
-	 * extension (eg: '.jpg') will add automaticaly depend of format option
+	 * extension (eg: '.jpg') will add automatically depend on format option
+	 *
 	 * @var string for sprintf()
 	 */
 	protected $store_structure = '%d/%d/%d';
 
 	/**
-	 * force tile generation, event if tile already exist
+	 * Force tile generation, event if tile already exist
+	 *
 	 * @var bool
 	 */
 	protected $force = false;
 
 	/**
-	 * http://www.maptiler.org/google-maps-coordinates-tile-bounds-projection/
-	 * if true - tiles will generates from top to bottom
+	 * When true - tiles will be generated from top to bottom
+	 * https://wiki.openstreetmap.org/wiki/TMS
+	 * https://en.wikipedia.org/wiki/Tile_Map_Service
+	 *
 	 * @var bool
 	 */
 	protected $tms = true;
 
 	/**
-	 * fill color can be transparent for png
+	 * A fill color. Can be "transparent" for png.
 	 * @var string
 	 */
 
 	protected $fill_color = 'white';
 
 	/**
-	 * zoom min
+	 * Zoom min
 	 * @var int
 	 */
-
 	protected $zoom_min = 0;
+
 	/**
-	 * zoom max
+	 * Zoom max
 	 * @var int
 	 */
 	protected $zoom_max = 8;
 
 	/**
-	 * for prevent image scalling up
-	 * if image size less than need for zoom level
-	 * @var int - max zoom level, when scalling up is allowed
+	 * To prevent image scaling up when image size is less than needed for active zoom level
+	 *
+	 * @var int - max zoom level, when scaling up is allowed
 	 */
 	protected $scaling_up = 0;
 
 	/**
-	 * Imagic filter for resizing
+	 * Imagick filter for resizing
 	 * http://www.php.net/manual/en/imagick.constants.php
 	 * Imagick::FILTER_POINT - fast with bad quality
 	 * Imagick::FILTER_CATROM - good enough
@@ -83,39 +91,45 @@ class MapTiler
 	//protected $resize_filter = Imagick::FILTER_POINT;
 
 	/**
-	 * image format used for store the tiles: jpeg or png
+	 * Image format to store the tiles: jpeg or png
 	 * http://www.imagemagick.org/script/formats.php
+	 *
 	 * @var string
 	 */
 	protected $format = 'jpeg';
 
 	/**
-	 * quality of the saved image in jpeg format
+	 * Quality of the saved image in jpeg format
+	 *
 	 * @var int
 	 */
 	protected $quality_jpeg = 80;
 
 	/**
 	 * ImageMagick tmp folder,
-	 * Can be changed in case if system /tmp have not enough free space
+	 * Can be changed in case if system /tmp have not enough free space.
+	 *
 	 * @var string
 	 */
 	protected $imagick_tmp = null;
 
 	/**
-	 * array with profiler class and method for call_user_func_array
-	 * @var array
+	 * Profiler callback. Called by call_user_func_array
+	 *
+	 * @var callable
 	 */
 	protected $profiler_callback = null;
 
 	/**
 	 * Class constructor.
+	 *
+	 * @throws \RuntimeException
 	 */
 	public function __construct($image_path, $options = array())
 	{
 		// Verify that imagick support for PHP is available.
 		if (!extension_loaded('imagick')){
-			throw new RuntimeException('The Imagick extension for PHP is not available.');
+			throw new \RuntimeException('The Imagick extension for PHP is not available.');
 		}
 
 		$this->image_path = $image_path;
@@ -128,7 +142,8 @@ class MapTiler
 	}
 
 	/**
-	 * set options
+	 * Set options
+	 *
 	 * @param array $options
 	 */
 	public function setOptions($options) {
@@ -138,7 +153,8 @@ class MapTiler
 	}
 
 	/**
-	 * get options
+	 * Get options
+	 *
 	 * @return array $options
 	 */
 	public function getOptions() {
@@ -146,8 +162,11 @@ class MapTiler
 	}
 
 	/**
-	 * run make tiles process
-	 * @param bool $clean_up - whether need to remove a zoom base images
+	 * Run make tiles process
+	 *
+	 * @param bool $clean_up - Whether to remove a zoom base images
+	 *
+	 * @throws \ImagickException
 	 */
 	public function process($clean_up = false){
 		$this->profiler('MapTiler: Process. Start');
@@ -171,9 +190,13 @@ class MapTiler
 	}
 
 	/**
-	 * prepare each zoom lvl base images
+	 * Prepare each zoom lvl base images
+	 *
 	 * @param int $min - min zoom lvl
 	 * @param int $max - max zoom lvl
+	 *
+	 * @throws \RuntimeException
+	 * @throws \ImagickException
 	 */
 	public function prepareZoomBaseImages($min = null, $max = null){
 		//prepare zoom levels
@@ -185,7 +208,7 @@ class MapTiler
 
 		//load main image
 		if(!is_file($this->image_path) || !is_readable($this->image_path)){
-			throw new RuntimeException('Cannot read image '.$this->image_path);
+			throw new \RuntimeException('Cannot read image '.$this->image_path);
 		}
 		$main_image = $this->loadImage($this->image_path);
 		$main_image->setImageFormat($this->format);
@@ -242,7 +265,8 @@ class MapTiler
 	}
 
 	/**
-	 * remove zoom lvl base images
+	 * Remove zoom lvl base images
+	 *
 	 * @param int $min - min zoom lvl
 	 * @param int $max - max zoom lvl
 	 */
@@ -264,8 +288,12 @@ class MapTiler
 	}
 
 	/**
-	 * make tiles for given zoom level
+	 * Make tiles for given zoom level
+	 *
 	 * @param int $zoom
+	 *
+	 * @throws \RuntimeException
+	 * @throws \ImagickException
 	 */
 	public function tilesForZoom($zoom) {
 		$path = $this->tiles_path.'/'.$zoom;
@@ -275,7 +303,7 @@ class MapTiler
 
 		//load image
 		if(!is_file($file) || !is_readable($file)){
-			throw new RuntimeException('Cannot read image '. $file . ', for zoom ' . $zoom);
+			throw new \RuntimeException('Cannot read image '. $file . ', for zoom ' . $zoom);
 		}
 
 		$image = $this->loadImage($file);
@@ -292,7 +320,7 @@ class MapTiler
 		$w = $this->tile_size;
 		$h = $w;
 
-		//crop cursore
+		// Crop cursor
 		$crop_x = 0;
 		$crop_y = 0;
 
@@ -337,17 +365,22 @@ class MapTiler
 	}
 
 	/**
-	 * load image and return imagic resurce
+	 * Load image and return Imagick resource
+	 *
 	 * @param string $path
-	 * @return resource Imagick
+	 *
+	 * @return \Imagick Imagick
+	 * @throws \ImagickException
 	 */
 	protected function loadImage($path = null) {
-		return new Imagick($path);
+		return new \Imagick($path);
 	}
 
 	/**
 	 * Destroys the Imagick object
-	 * @param resurce $image Imagick object
+	 *
+	 * @param \Imagick $image Imagick object
+	 *
 	 * @return bool
 	 */
 	protected function unloadImage($image) {
@@ -358,11 +391,12 @@ class MapTiler
 	/**
 	 * Fit image in to given size
 	 * http://php.net/manual/en/imagick.resizeimage.php
-	 * @param resurce $image Imagick object
+	 *
+	 * @param \Imagick $image Imagick object
 	 * @param int $w width
 	 * @param int $h height
 	 *
-	 * @return resurce imagick object
+	 * @return \Imagick imagick object
 	 */
 	protected function imageFit($image, $w, $h) {
 		//resize - works slower but have a better quality
@@ -377,11 +411,11 @@ class MapTiler
 	/**
 	 * Put image in to rectangle and fill free space
 	 *
-	 * @param resurce $image Imagick object
+	 * @param \Imagick $image Imagick object
 	 * @param int $w width
 	 * @param int $h height
 	 *
-	 * @return resurce imagick object
+	 * @return \Imagick imagick object
 	 */
 	protected function fillFreeSpace($image, $w, $h) {
 		$image->setImageBackgroundColor($this->fill_color);
@@ -396,10 +430,14 @@ class MapTiler
 	}
 
 	/**
-	 * save image in to destination
-	 * @param resurce $image
+	 * Save image in to destination
+	 *
+	 * @param \Imagick $image
 	 * @param string $name
+	 *
 	 * @param string $dest full path with file name
+	 *
+	 * @throws \RuntimeException
 	 */
 	protected function imageSave($image, $dest){
 		//prepare folder
@@ -407,21 +445,24 @@ class MapTiler
 
 		//prepare to save
 		if($this->format == 'jpeg') {
-			$image->setCompression(Imagick::COMPRESSION_JPEG);
+			$image->setCompression(\Imagick::COMPRESSION_JPEG);
 			$image->setCompressionQuality($this->quality_jpeg);
 		}
 
 		//save image
 		if(!$image->writeImage($dest)){
-			throw new RuntimeException('Cannot save image '.$dest);
+			throw new \RuntimeException('Cannot save image '.$dest);
 		}
 
 		return true;
 	}
 
 	/**
-	 * create folder
+	 * Create folder
+	 *
 	 * @param string $path folder path
+	 *
+	 * @throws \RuntimeException
 	 */
 	protected function makeFolder($path, $mode = 0755) {
 		//check if already exist
@@ -430,21 +471,23 @@ class MapTiler
 		}
 		//make folder
 		if(!mkdir($path, $mode, true)) {
-			throw new RuntimeException('Cannot crate folder '.$path);
+			throw new \RuntimeException('Cannot crate folder '.$path);
 		}
 		return true;
 	}
 
 	/**
-	 * return file extension depend of given format
+	 * Return file extension depend on given format
+	 *
 	 * @param string $format - output format used in Imagick
 	 */
 	public function getExtension($format = null){
-		$format = $format ? $format : $this->format;
+		$format = $format ?: $this->format;
 		$ext = '';
 
 		switch (strtolower($format)) {
 			case 'jpeg':
+			case 'jpg':
 			case 'jp2':
 			case 'jpc':
 			case 'jxr':
@@ -463,11 +506,12 @@ class MapTiler
 	}
 
 	/**
-	 * profiler function
+	 * Profiler function
+	 *
 	 * @param string $note
 	 */
 	protected function profiler($note) {
-		if($this->profiler_callback) {
+		if ($this->profiler_callback) {
 			call_user_func_array($this->profiler_callback, array($note));
 		}
 	}
