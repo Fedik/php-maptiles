@@ -81,6 +81,3 @@ Display the result with [Leaflet.js](http://leafletjs.com)
 * `removeZoomBaseImages($min = null, $max = null)`  Remove the base zoom images.
 * `tilesForZoom($zoom)`  Generate tiles for given `$zoom` level.
 
-## Attention
-
-The script do **NOT** related to **maptiler.com**, that is standalone project.
