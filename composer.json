@@ -2,7 +2,7 @@
   "name": "fedik/php-maptiles",
   "description": "Simple Map Tiles Generator. Allow to make a Map Tiles with PHP and Imagick.",
   "type": "library",
-  "license": "GNU/GPL",
+  "license": "GPL-2.0-or-later",
   "keywords": [
     "map tile",
     "map tile generator",
